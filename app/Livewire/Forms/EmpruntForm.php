@@ -147,7 +147,7 @@ class EmpruntForm extends Form
             'type_amortissement' => ['required', Rule::in(['constant', 'decroissant'])],
             'frequence_paiement' => ['required', Rule::in(['mensuel', 'trimestriel', 'annuel'])],
             'date_debut' => ['required', 'date', 'after_or_equal:today'],
-            'notes' => ['required', 'string', 'max:500'], // Rendre obligatoire
+            'notes' => ['required', 'string', 'max:500'],
         ];
     }
 
@@ -200,8 +200,8 @@ class EmpruntForm extends Form
             'duree_mois' => $dureeMois,
             'duree_jours' => $dureeJours,
             // Taux laissés à null - seront définis par la banque
-            'taux_interet_annuel' => null,
-            'taux_interet_mensuel' => null,
+            'taux_interet_annuel' => 5.6,
+            'taux_interet_mensuel' => 0.2,
             // Pas de calculs pour l'instant
             'montant_mensualite' => null,
             'total_interets' => null,

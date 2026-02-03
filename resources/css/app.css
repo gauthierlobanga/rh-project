@@ -1,12 +1,14 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
 @import "flowbite/src/themes/default";
+/* @import "../../vendor/filament/notifications/resources/css/index.css"; */
 
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+/* @source '../../vendor/filament*.blade.php'; */
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
 @custom-variant dark (&:where(.dark, .dark *));

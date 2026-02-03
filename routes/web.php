@@ -15,4 +15,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/mes-notifications', MesNotifications::class)
         ->name('mes-notifications');
 });
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

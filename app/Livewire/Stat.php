@@ -18,6 +18,12 @@ class Stat extends Component
         return $statsWidgets->getStats();
     }
 
+    public function resetFilters()
+    {
+
+        $this->resetPage();
+    }
+
     public function render()
     {
         return view('livewire.stat', [

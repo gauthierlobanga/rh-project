@@ -119,7 +119,7 @@ class Emprunt extends Model
         $this->marquerNotifieApprouve();
 
         // Émettre un événement Livewire
-        $this->dispatchBrowserEvent('notification-received');
+        $this->dispatch('notification-received');
     }
 
     public function notifierFondsDisponibles()
@@ -128,7 +128,7 @@ class Emprunt extends Model
         $this->marquerNotifieFondsDisponibles();
 
         // Émettre un événement Livewire
-        $this->dispatchBrowserEvent('notification-received');
+        $this->dispatch('notification-received');
     }
 
     // Dans Filament, après l'approbation d'un emprunt :
@@ -318,7 +318,6 @@ class Emprunt extends Model
     {
         $empruntsActifs = self::where('user_id', $userId)
             ->where('est_actif', true)
-            ->whereNotNull('deleted_at')
             ->whereIn('status', ['en_attente', 'approuve', 'en_cours'])
             ->count();
 
@@ -332,7 +331,6 @@ class Emprunt extends Model
     {
         return self::where('user_id', $userId)
             ->where('est_actif', true)
-            ->whereNotNull('deleted_at')
             ->whereIn('status', ['en_attente', 'approuve', 'en_cours'])
             ->first();
     }

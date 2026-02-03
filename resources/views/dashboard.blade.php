@@ -7,4 +7,6 @@
     <flux:spacer />
     {{-- Table avec statut En attente --}}
     <livewire:stats.table-widget-attente />
+    <flux:spacer />
+
 </x-layouts::app>

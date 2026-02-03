@@ -4,28 +4,27 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use Filament\Panel;
-use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Models\Permission;
 use Filament\Models\Contracts\FilamentUser;
-use Laravel\Fortify\TwoFactorAuthenticatable;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
     use HasRoles;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-
     protected $fillable = [
         'name',
         'email',
@@ -65,14 +64,14 @@ class User extends Authenticatable implements FilamentUser
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn($word) => Str::substr($word, 0, 1))
+            ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return str_ends_with($this->email, '@albank.admin.com');
+            return str_ends_with($this->email, '@admin.com');
         }
 
         return true;

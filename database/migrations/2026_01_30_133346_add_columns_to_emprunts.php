@@ -89,7 +89,7 @@ return new class extends Migration
                 'verification_emploi'
             ]);
 
-            $table->dropIndex(['user_id', 'est_actif', 'status']);
+            // $table->dropIndex(['user_id', 'est_actif', 'status']);
             $table->dropIndex(['status', 'date_debut']);
         });
     }

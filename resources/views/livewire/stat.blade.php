@@ -11,8 +11,6 @@
                      <option>Last 90 days</option>
                  </flux:select>
 
-                 <flux:subheading class="max-md:hidden whitespace-nowrap">compared to</flux:subheading>
-
                  <flux:select size="sm" class="max-md:hidden">
                      <option selected>Previous period</option>
                      <option>Same period last year</option>
@@ -21,6 +19,7 @@
                      <option>Last 6 months</option>
                      <option>Last 12 months</option>
                  </flux:select>
+
                  <flux:select size="sm" class="max-md:hidden">
                      <option selected>Previous period</option>
                      <option>Same period last year</option>
@@ -34,15 +33,8 @@
              <flux:separator vertical class="max-lg:hidden mx-2 my-2" />
 
              <div class="max-lg:hidden flex justify-start items-center gap-2">
-                 <flux:subheading class="whitespace-nowrap">Filter by:</flux:subheading>
-
-                 <flux:badge as="button" rounded color="zinc" icon="plus" size="lg">Amount
-                 </flux:badge>
-                 <flux:badge as="button" rounded color="zinc" icon="plus" size="lg" class="max-md:hidden">
-                     Status</flux:badge>
-                 <flux:badge as="button" rounded color="zinc" icon="plus" size="lg">More
-                     filters...
-                 </flux:badge>
+                 <flux:button class="cursor-pointer" square icon="arrow-path" wire:click="resetFilters"
+                     size="sm" />
              </div>
          </div>
      </div>

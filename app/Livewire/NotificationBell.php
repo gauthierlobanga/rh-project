@@ -2,10 +2,11 @@
 
 namespace App\Livewire;
 
+use Flux\Flux;
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\DatabaseNotification;
-use Livewire\Attributes\On;
 
 class NotificationBell extends Component
 {
@@ -16,6 +17,26 @@ class NotificationBell extends Component
     public function mount()
     {
         $this->loadNotifications();
+    }
+
+    public function notificationOpen()
+    {
+        $this->dispatch('notification-bell');
+    }
+    public function notificationClose()
+    {
+        $this->dispatch('notification-bell-close');
+    }
+
+    #[On('notification-bell')]
+    public function openNotification()
+    {
+        Flux::modal('notification-bell')->show();
+    }
+    #[On('notification-bell-close')]
+    public function closeNotification()
+    {
+        Flux::modal('notification-bell')->close();
     }
 
     public function loadNotifications()

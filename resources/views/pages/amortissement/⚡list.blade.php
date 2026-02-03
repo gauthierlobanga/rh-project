@@ -32,6 +32,8 @@ new #[Title('Mes Emprunts')] class extends Component {
 
     public $sortDirection = 'desc';
 
+    public $exportColumns = [];
+
     public $filters = [
         'date_debut' => null,
         'date_fin' => null,
@@ -61,6 +63,8 @@ new #[Title('Mes Emprunts')] class extends Component {
         if (Auth::check()) {
             $this->checkNotifications();
         }
+
+        $this->exportColumns = ['reference', 'nom_client', 'montant_emprunt', 'date_debut', 'date_fin_remboursement', 'duree_mois', 'taux_interet_annuel', 'type_amortissement', 'frequence_paiement', 'montant_mensualite', 'total_interets', 'total_a_rembourser', 'status'];
     }
 
     public function checkNotifications()
@@ -252,11 +256,7 @@ new #[Title('Mes Emprunts')] class extends Component {
 ?>
 <div>
     <livewire:pages::amortissement.create />
-
-    <!-- Inclure le composant de notification bell -->
-    @auth
-        <livewire:notification-bell />
-    @endauth
+    {{-- @dd(array_key_exists('en_attente', $this->statusOptions)) --}}
 
     <flux:main container>
         <!-- Barre d'outils supérieure -->
@@ -264,7 +264,7 @@ new #[Title('Mes Emprunts')] class extends Component {
             <!-- Recherche -->
             <div class="w-full md:w-auto">
                 <flux:input wire:model.live.debounce.500ms="search" icon="magnifying-glass"
-                    placeholder="Rechercher par montant, référence ou motif..." class="w-full md:w-64" />
+                    placeholder="Rechercher par montant, référence ou motif..." class="w-full md:w-90" />
             </div>
 
             <!-- Filtres -->
@@ -283,43 +283,31 @@ new #[Title('Mes Emprunts')] class extends Component {
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
                 </flux:select>
+                <flux:button square icon="arrow-path" class="cursor-pointer" wire:click="resetFilters" size="sm" />
 
-                <flux:dropdown>
-                    <flux:button variant="ghost" icon="funnel" size="sm">
-                        Plus de filtres
-                    </flux:button>
-                    <flux:menu class="w-64 p-4">
-                        <div class="space-y-4">
-                            <flux:input wire:model.live.debounce.500ms="filters.montant_min" type="number"
-                                placeholder="Montant min" size="sm" />
-                            <flux:input wire:model.live.debounce.500ms="filters.montant_max" type="number"
-                                placeholder="Montant max" size="sm" />
-                            <flux:input wire:model.live.debounce.500ms="filters.duree_mois_min" type="number"
-                                placeholder="Durée min (mois)" size="sm" />
-                            <flux:input wire:model.live.debounce.500ms="filters.duree_mois_max" type="number"
-                                placeholder="Durée max (mois)" size="sm" />
-                            <flux:button wire:click="applyFilters" variant="primary" size="sm" class="w-full">
-                                Appliquer
-                            </flux:button>
-                            <flux:button wire:click="resetFilters" variant="ghost" size="sm" class="w-full">
-                                Réinitialiser
-                            </flux:button>
-                        </div>
-                    </flux:menu>
-                </flux:dropdown>
             </div>
         </div>
 
         <!-- Sélection du nombre d'éléments par page -->
         <div class="flex justify-between mb-4 gap-3.5">
+            @php
+                $status = $this->emprunts->toArray();
+                $value = $status['data'][0]['status'] ?? '';
+            @endphp
             <div class="w-1/2">
                 @if (!$this->peutFaireNouvelleDemande)
-                    <flux:callout variant="warning" icon="exclamation-circle"
-                        heading=" Vous avez déjà un emprunt en cours." />
+                    @if ($value === 'en_attente' || $value === 'en_cours')
+                        <flux:callout class="py-0!" variant="warning" icon="exclamation-circle"
+                            heading=" Vous avez déjà un emprunt en cours." />
+                    @elseif($value === 'approuve')
+                        <flux:callout class="py-0!" variant="success" icon="exclamation-circle"
+                            heading=" Vous avez déjà un emprunt approuvé." />
+                    @endif
                 @endif
             </div>
 
             <div class="flex items-center gap-2">
+
                 <flux:select wire:model.live="perPage" size="sm" class="w-32">
                     <option value="5">5 par page</option>
                     <option value="10">10 par page</option>
@@ -327,15 +315,17 @@ new #[Title('Mes Emprunts')] class extends Component {
                     <option value="50">50 par page</option>
                     <option value="100">100 par page</option>
                 </flux:select>
+
                 <flux:separator vertical />
+
                 <flux:dropdown>
                     <flux:button icon="arrow-down-tray" size="sm">
-                        Exporter
+                        Export
                     </flux:button>
                     <flux:menu>
                         <flux:menu.item icon="document-arrow-down" wire:click="exportExcel"
                             wire:loading.attr="disabled">
-                            Excel (.xlsx)
+                            Excel
                         </flux:menu.item>
                         <flux:menu.item icon="document-text" wire:click="exportPdf" wire:loading.attr="disabled">
                             PDF
@@ -344,187 +334,186 @@ new #[Title('Mes Emprunts')] class extends Component {
                 </flux:dropdown>
 
                 @if ($this->peutFaireNouvelleDemande)
-                    <flux:button class="text-white" wire:click="empruntCreate" variant="primary" icon="plus"
-                        size="sm">
+                    <flux:button class="text-white cursor-pointer" wire:click="empruntCreate" variant="primary"
+                        icon="plus" size="sm">
                         Nouvel emprunt
                     </flux:button>
                 @else
-                    <flux:button :disabled="!$this->peutFaireNouvelleDemande" variant="primary" color="red"
-                        size="sm" title="Vous avez déjà un emprunt en cours">
+                    <flux:button class="text-white cursor-wait" :disabled="!$this->peutFaireNouvelleDemande"
+                        variant="primary" color="red" size="sm" title="Vous avez déjà un emprunt en cours">
                         Emprunt non disponible
                     </flux:button>
                 @endif
-
-
             </div>
         </div>
 
         <!-- Tableau -->
-        <flux:table :paginate="$this->emprunts">
-            <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'montant_emprunt'" :direction="$sortDirection"
-                    wire:click="sort('montant_emprunt')">
-                    Montant
-                </flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'date_debut'" :direction="$sortDirection"
-                    wire:click="sort('date_debut')">
-                    Début
-                </flux:table.column>
-                <flux:table.column>Fin</flux:table.column>
-                <flux:table.column>Durée</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'type_amortissement'" :direction="$sortDirection"
-                    wire:click="sort('type_amortissement')">
-                    Type
-                </flux:table.column>
-                <flux:table.column>Fréquence</flux:table.column>
-                <flux:table.column>Taux</flux:table.column>
-                <flux:table.column>Taux mensuel</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection"
-                    wire:click="sort('status')">
-                    Statut
-                </flux:table.column>
-                <flux:table.column>Notifications</flux:table.column>
-                <flux:table.column class="w-24">Actions</flux:table.column>
-            </flux:table.columns>
+        <flux:card class="bg-zinc-700 pt-1">
+            <flux:table :paginate="$this->emprunts">
+                <flux:table.columns>
+                    <flux:table.column sortable :sorted="$sortBy === 'montant_emprunt'" :direction="$sortDirection"
+                        wire:click="sort('montant_emprunt')">
+                        Montant
+                    </flux:table.column>
+                    <flux:table.column sortable :sorted="$sortBy === 'date_debut'" :direction="$sortDirection"
+                        wire:click="sort('date_debut')">
+                        Début
+                    </flux:table.column>
+                    <flux:table.column>Fin</flux:table.column>
+                    <flux:table.column>Durée</flux:table.column>
+                    <flux:table.column sortable :sorted="$sortBy === 'type_amortissement'" :direction="$sortDirection"
+                        wire:click="sort('type_amortissement')">
+                        Type
+                    </flux:table.column>
+                    <flux:table.column>Fréquence</flux:table.column>
+                    <flux:table.column>Taux</flux:table.column>
+                    <flux:table.column>Taux mensuel</flux:table.column>
+                    <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection"
+                        wire:click="sort('status')">
+                        Statut
+                    </flux:table.column>
+                    <flux:table.column class="w-24">Actions</flux:table.column>
+                </flux:table.columns>
 
-            <flux:table.rows wire:transition>
-                @foreach ($this->emprunts as $emprunt)
-                    <flux:table.row :key="$emprunt->id">
-                        <flux:table.cell variant="strong">
-                            {{ number_format($emprunt->montant_emprunt, 0, ',', ' ') }} USD
-                        </flux:table.cell>
+                <flux:table.rows wire:transition>
+                    @foreach ($this->emprunts as $emprunt)
+                        <flux:table.row :key="$emprunt->id">
+                            <flux:table.cell variant="strong">
+                                {{ number_format($emprunt->montant_emprunt, 0, ',', ' ') }} USD
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            {{ $emprunt->date_debut->format('d/m/Y') }}
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                {{ $emprunt->date_debut->format('d/m/Y') }}
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            {{ $emprunt->date_fin_remboursement->format('d/m/Y') }}
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                {{ $emprunt->date_fin_remboursement->format('d/m/Y') }}
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            {{ $emprunt->duree_formatee }}
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                {{ $emprunt->duree_formatee }}
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            <flux:badge rounded
-                                :color="$emprunt->type_amortissement === 'constant' ? 'green' : 'blue'">
-                                {{ $emprunt->type_amortissement === 'constant' ? 'Constant' : 'Décroissant' }}
-                            </flux:badge>
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge rounded
+                                    :color="$emprunt->type_amortissement === 'constant' ? 'green' : 'blue'">
+                                    {{ $emprunt->type_amortissement === 'constant' ? 'Constant' : 'Décroissant' }}
+                                </flux:badge>
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            <flux:badge rounded color="zinc">
-                                {{ ucfirst($emprunt->frequence_paiement) }}
-                            </flux:badge>
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge rounded color="zinc">
+                                    {{ ucfirst($emprunt->frequence_paiement) }}
+                                </flux:badge>
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            @if ($emprunt->taux_interet_annuel)
-                                {{ $emprunt->taux_interet_annuel }}%
-                            @else
-                                <span class="text-gray-400">À définir</span>
-                            @endif
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($emprunt->taux_interet_annuel)
+                                    {{ $emprunt->taux_interet_annuel }}%
+                                @else
+                                    <span class="text-gray-400">À définir</span>
+                                @endif
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            @if ($emprunt->taux_interet_mensuel)
-                                {{ $emprunt->taux_interet_mensuel }}%
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
-                        </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($emprunt->taux_interet_mensuel)
+                                    {{ $emprunt->taux_interet_mensuel }}%
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            @switch($emprunt->status)
-                                @case('approuve')
-                                    <flux:badge rounded color="green">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                                @break
+                            <flux:table.cell>
+                                @switch($emprunt->status)
+                                    @case('approuve')
+                                        <flux:badge rounded color="green">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                    @break
 
-                                @case('en_attente')
-                                    <flux:badge rounded color="yellow">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                                @break
+                                    @case('en_attente')
+                                        <flux:badge rounded color="yellow">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                    @break
 
-                                @case('rejete')
-                                    <flux:badge rounded color="red">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                                @break
+                                    @case('rejete')
+                                        <flux:badge rounded color="red">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                    @break
 
-                                @case('termine')
-                                    <flux:badge rounded color="blue">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                                @break
+                                    @case('termine')
+                                        <flux:badge rounded color="blue">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                    @break
 
-                                @case('defaut')
-                                    <flux:badge rounded color="orange">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                                @break
+                                    @case('defaut')
+                                        <flux:badge rounded color="orange">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                    @break
 
-                                @default
-                                    <flux:badge rounded color="zinc">
-                                        {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
-                                    </flux:badge>
-                            @endswitch
-                        </flux:table.cell>
+                                    @default
+                                        <flux:badge rounded color="zinc">
+                                            {{ $this->statusOptions[$emprunt->status] ?? $emprunt->status }}
+                                        </flux:badge>
+                                @endswitch
+                            </flux:table.cell>
 
-                        <flux:table.cell>
-                            @if ($emprunt->notifie_approuve && !$emprunt->notifie_fonds_disponibles)
-                                <div class="flex items-center gap-1">
-                                    <flux:icon.bell-alert class="w-4 h-4 text-green-500"
-                                        title="Emprunt approuvé - à signer" />
-                                    <span class="text-xs text-green-600">À signer</span>
-                                </div>
-                            @elseif($emprunt->notifie_fonds_disponibles)
-                                <div class="flex items-center gap-1">
-                                    <flux:icon.banknotes class="w-4 h-4 text-blue-500" title="Fonds disponibles" />
-                                    <span class="text-xs text-blue-600">Fonds dispo</span>
-                                </div>
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
-                        </flux:table.cell>
+                            {{-- <flux:table.cell>
+                                @if ($emprunt->notifie_approuve && !$emprunt->notifie_fonds_disponibles)
+                                    <div class="flex items-center gap-1">
+                                        <flux:icon.bell-alert class="w-4 h-4 text-green-500"
+                                            title="Emprunt approuvé - à signer" />
+                                        <span class="text-xs text-green-600">À signer</span>
+                                    </div>
+                                @elseif($emprunt->notifie_fonds_disponibles)
+                                    <div class="flex items-center gap-1">
+                                        <flux:icon.banknotes class="w-4 h-4 text-blue-500" title="Fonds disponibles" />
+                                        <span class="text-xs text-blue-600">Fonds dispo</span>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </flux:table.cell> --}}
 
-                        <flux:table.cell>
-                            <flux:dropdown position="bottom" align="end">
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal">
-                                </flux:button>
-                                <flux:menu>
-                                    <flux:menu.item icon="eye" wire:click="voirDetails({{ $emprunt->id }})">
-                                        Voir détails
-                                    </flux:menu.item>
-
-                                    @if ($emprunt->status === 'en_attente')
-                                        <flux:menu.item icon="x-circle" variant="danger"
-                                            wire:click="annulerEmprunt({{ $emprunt->id }})"
-                                            wire:confirm="Voulez-vous vraiment annuler cet emprunt?">
-                                            Annuler
+                            <flux:table.cell>
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal">
+                                    </flux:button>
+                                    <flux:menu>
+                                        <flux:menu.item icon="eye" wire:click="voirDetails({{ $emprunt->id }})">
+                                            Voir détails
                                         </flux:menu.item>
-                                    @endif
 
-                                    @if ($emprunt->status === 'approuve' && !$emprunt->notifie_fonds_disponibles)
-                                        <flux:menu.item icon="document-text">
-                                            Signer contrat
-                                        </flux:menu.item>
-                                    @endif
+                                        @if ($emprunt->status === 'en_attente')
+                                            <flux:menu.item icon="x-circle" variant="danger"
+                                                wire:click="annulerEmprunt({{ $emprunt->id }})"
+                                                wire:confirm="Voulez-vous vraiment annuler cet emprunt?">
+                                                Annuler
+                                            </flux:menu.item>
+                                        @endif
 
-                                    @if ($emprunt->status === 'en_cours')
-                                        <flux:menu.item icon="currency-euro">
-                                            Payer échéance
-                                        </flux:menu.item>
-                                    @endif
-                                </flux:menu>
-                            </flux:dropdown>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforeach
-            </flux:table.rows>
-        </flux:table>
+                                        @if ($emprunt->status === 'approuve' && !$emprunt->notifie_fonds_disponibles)
+                                            <flux:menu.item icon="document-text">
+                                                Signer contrat
+                                            </flux:menu.item>
+                                        @endif
+
+                                        @if ($emprunt->status === 'en_cours')
+                                            <flux:menu.item icon="currency-euro">
+                                                Payer échéance
+                                            </flux:menu.item>
+                                        @endif
+                                    </flux:menu>
+                                </flux:dropdown>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
     </flux:main>
 </div>

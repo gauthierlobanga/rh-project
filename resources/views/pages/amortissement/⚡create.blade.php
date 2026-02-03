@@ -16,6 +16,7 @@ new class extends Component {
     public $peutEmprunter = true;
     public $raisonBlocage = '';
     public $empruntActif = null;
+    public $imageFile = null;
 
     public function mount()
     {
@@ -50,7 +51,7 @@ new class extends Component {
         if (!Auth::check()) {
             session()->flash('error', 'Vous devez être connecté pour créer un emprunt.');
             return;
-
+        } else {
             // Vérifier à nouveau
             $this->verifierPossibiliteEmprunt();
 
@@ -133,13 +134,16 @@ new class extends Component {
 
             $emprunt = $this->form->store();
 
+            // dd($emprunt);
+
             session()->flash('success', 'Votre demande d\'emprunt a été soumise avec succès ! Notre équipe l\'étudiera et vous proposera un taux d\'intérêt.');
 
             Flux::modal('amortissement-create')->close();
-
+            $this->redirect(route('amortissement.list'), navigate: true);
             $this->dispatch('emprunt-created');
         } catch (\Exception $e) {
             session()->flash('error', 'Erreur lors de la création de l\'emprunt: ' . $e->getMessage());
+            $this->redirect(route('amortissement.list'), navigate: true);
         }
     }
 
@@ -171,7 +175,8 @@ new class extends Component {
 };
 ?>
 
-<flux:modal name="amortissement-create" flyout size="lg">
+<flux:modal name="amortissement-create" flyout class="7xl">
+    {{-- @dd($this->verifierPossibiliteEmprunt()) --}}
     <div class="space-y-6">
         <div>
             <flux:heading size="lg">Demande d'emprunt</flux:heading>
@@ -207,64 +212,46 @@ new class extends Component {
         <form wire:submit.prevent="previewCalcul" class="space-y-4" @if (!$peutEmprunter) disabled @endif>
             <!-- Montant de l'emprunt -->
             <flux:input :label="__('Montant souhaité (USD)')" type="number" step="100"
-                wire:model="form.montant_emprunt" placeholder="Ex: 10000" required :disabled="!$peutEmprunter" />
-            @error('form.montant_emprunt')
-                <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-            @enderror
+                wire:model="form.montant_emprunt" placeholder="Ex: 10000" :disabled="!$peutEmprunter" />
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Date de début souhaitée -->
-                <flux:input :label="__('Date de début souhaitée')" type="date" wire:model="form.date_debut" required
+                <flux:input :label="__('Date de début souhaitée')" type="date" wire:model="form.date_debut"
                     :disabled="!$peutEmprunter" />
-                @error('form.date_debut')
-                    <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-                @enderror
 
                 <!-- Date de fin de remboursement -->
                 <flux:input :label="__('Date de fin de remboursement')" type="date"
-                    wire:model="form.date_fin_remboursement" required :disabled="!$peutEmprunter" />
-                @error('form.date_fin_remboursement')
-                    <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-                @enderror
+                    wire:model="form.date_fin_remboursement" :disabled="!$peutEmprunter" />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Type d'amortissement -->
-                <flux:select :label="__('Type d\'amortissement')" wire:model="form.type_amortissement" required
+                <flux:select :label="__('Type d\'amortissement')" wire:model="form.type_amortissement"
                     :disabled="!$peutEmprunter">
                     <option value="constant">Mensualités constantes</option>
                     <option value="decroissant">Mensualités décroissantes</option>
                 </flux:select>
-                @error('form.type_amortissement')
-                    <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-                @enderror
 
                 <!-- Fréquence de paiement -->
-                <flux:select :label="__('Fréquence de paiement')" wire:model="form.frequence_paiement" required
+                <flux:select :label="__('Fréquence de paiement')" wire:model="form.frequence_paiement"
                     :disabled="!$peutEmprunter">
                     <option value="mensuel">Mensuel</option>
                     <option value="trimestriel">Trimestriel</option>
                     <option value="annuel">Annuel</option>
                 </flux:select>
-                @error('form.frequence_paiement')
-                    <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-                @enderror
             </div>
 
             <!-- Notes (motif obligatoire) -->
             <flux:textarea :label="__('Motif de l\'emprunt *')" wire:model="form.notes"
                 placeholder="Précisez l'utilisation prévue des fonds (achat immobilier, voiture, projet professionnel, etc.)..."
-                rows="3" required :disabled="!$peutEmprunter" />
-            @error('form.notes')
-                <flux:text color="danger" class="mt-1">{{ $message }}</flux:text>
-            @enderror
+                rows="3" :disabled="!$peutEmprunter" />
 
             <!-- Aperçu -->
             @if ($showPreview && $previewData)
-                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <flux:card class=" dark:bg-zinc-700">
                     <flux:heading size="md" class="mb-3">Récapitulatif de votre demande</flux:heading>
 
-                    <div class="space-y-3">
+                    <div class="space-y-3 mb-3">
                         <div class="flex justify-between">
                             <flux:text class="text-gray-600 dark:text-gray-400">Montant</flux:text>
                             <flux:text class="font-semibold">{{ $previewData['montant_emprunt'] }}</flux:text>
@@ -283,19 +270,18 @@ new class extends Component {
                         </div>
                     </div>
 
-                    <flux:text size="sm" class="text-gray-500 mt-3">
-                        ⚠️ Les conditions finales (taux d'intérêt, mensualité, frais) seront déterminées
+                    <flux:callout variant="warning" icon="exclamation-circle"
+                        heading="Les conditions finales (taux d'intérêt, mensualité, frais) seront déterminées
                         par notre équipe après étude de votre dossier et vous seront communiquées.
-                    </flux:text>
-                </div>
+                    " />
+                </flux:card>
             @endif
 
             <flux:spacer />
 
             <div class="flex items-center justify-between">
-                <flux:button type="button" wire:click="previewCalcul" variant="primary"
-                    :disabled="!$this->form->montant_emprunt || !$this->form->date_debut || !$this->form->date_fin_remboursement || !$peutEmprunter">
-                    <flux:icon.eye class="w-4 h-4 mr-2" />
+                <flux:button icon="eye" type="button" wire:click="previewCalcul" variant="primary"
+                    class="bg-blue-500 text-white cursor-pointer" {{-- :disabled="!$this->form->montant_emprunt || !$this->form->date_debut || !$this->form->date_fin_remboursement || !$peutEmprunter" --}}>
                     Prévisualiser
                 </flux:button>
 
@@ -305,9 +291,8 @@ new class extends Component {
                         Annuler
                     </flux:button>
 
-                    <flux:button type="button" wire:click="save" variant="primary"
-                        class="bg-accent text-white cursor-pointer" :disabled="!$showPreview || !$peutEmprunter">
-                        <flux:icon.paper-airplane class="w-4 h-4 mr-2" />
+                    <flux:button icon="paper-airplane" wire:click="save" variant="primary"
+                        class="bg-blue-500 text-white cursor-pointer" :disabled="!$showPreview || !$peutEmprunter">
                         Soumettre la demande
                     </flux:button>
                 </div>

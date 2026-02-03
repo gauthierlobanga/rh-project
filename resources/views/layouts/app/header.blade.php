@@ -12,23 +12,21 @@
         <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
 
         <flux:navbar class="-mb-px max-lg:hidden">
-            <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+            <flux:navbar.item icon="layout-grid" :href="route('home')" :current="request()->routeIs('home')"
                 wire:navigate>
-                {{ __('Dashboard') }}
+                {{ __('Home') }}
             </flux:navbar.item>
         </flux:navbar>
 
         <flux:spacer />
 
         <flux:navbar class="me-1.5 space-x-0.5 rtl:space-x-reverse py-0!">
-            <flux:tooltip :content="__('Search')" position="bottom">
-                <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#"
-                    :label="__('Search')" />
-            </flux:tooltip>
-            <flux:tooltip :content="__('Repository')" position="bottom">
-                <flux:navbar.item class="h-10 max-lg:hidden [&>div>svg]:size-5" icon="folder-git-2"
-                    href="https://github.com/laravel/livewire-starter-kit" target="_blank" :label="__('Repository')" />
-            </flux:tooltip>
+            @auth
+                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                    wire:navigate>
+                    {{ __('Dashboard') }}
+                </flux:navbar.item>
+            @endauth
             <flux:tooltip :content="__('Documentation')" position="bottom">
                 <flux:navbar.item class="h-10 max-lg:hidden [&>div>svg]:size-5" icon="book-open-text"
                     href="https://laravel.com/docs/starter-kits#livewire" target="_blank" label="Documentation" />
@@ -48,11 +46,13 @@
         </flux:sidebar.header>
 
         <flux:sidebar.nav>
-            <flux:sidebar.group :heading="__('Platform')">
-                <flux:sidebar.item icon="layout-grid" :href="route('dashboard')"
-                    :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </flux:sidebar.item>
+            <flux:sidebar.group :heading="__('AlBank')">
+                @auth
+                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')"
+                        :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </flux:sidebar.item>
+                @endauth
             </flux:sidebar.group>
         </flux:sidebar.nav>
 
@@ -76,6 +76,9 @@
     @filamentScripts
     <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
 
+    <div>
+        @livewire('notifications')
+    </div>
 </body>
 
 </html>
