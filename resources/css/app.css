@@ -1,14 +1,12 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
 @import "flowbite/src/themes/default";
-/* @import "../../vendor/filament/notifications/resources/css/index.css"; */
 
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
-/* @source '../../vendor/filament*.blade.php'; */
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -31,20 +29,21 @@
     --color-zinc-900: var(--color-slate-900);
     --color-zinc-950: var(--color-slate-950);
 
-    --color-accent: var(--color-blue-500);
-    --color-accent-content: var(--color-blue-600);
+    --color-accent: var(--color-emerald-600);
+    --color-accent-content: var(--color-emerald-600);
     --color-accent-foreground: var(--color-white);
+
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-blue-500);
-        --color-accent-content: var(--color-blue-400);
-        /* --color-accent-foreground: var(--color-white); */
+        --color-accent: var(--color-emerald-600);
+        --color-accent-content: var(--color-emerald-400);
     }
 }
 
 @layer base {
+
     *,
     ::after,
     ::before,
@@ -59,7 +58,7 @@
 }
 
 [data-flux-label] {
-    @apply !mb-0 !leading-tight;
+    @apply mb-0 leading-tight;
 }
 
 input:focus[data-flux-control],

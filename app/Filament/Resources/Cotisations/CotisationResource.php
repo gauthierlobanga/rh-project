@@ -50,4 +50,14 @@ class CotisationResource extends Resource
             'edit' => EditCotisation::route('/{record}/edit'),
         ];
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('statut_paiement', 'en_retard')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
+    }
 }

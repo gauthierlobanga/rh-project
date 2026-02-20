@@ -73,6 +73,11 @@
                     <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                         {{ __('Settings') }}
                     </flux:menu.item>
+                    @if (auth()->user()->hasRole(['admin', 'super admin']))
+                        <flux:menu.item :href="route('filament.admin.pages.dashboard')" icon="cog" wire:navigate>
+                            {{ __('panel') }}
+                        </flux:menu.item>
+                    @endif
                 </flux:menu.radio.group>
 
                 <flux:menu.separator />
@@ -81,7 +86,7 @@
                     @csrf
                     <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle"
                         class="w-full cursor-pointer" data-test="logout-button">
-                        {{ __('Log Out') }}
+                        {{ __('Se déconnecter') }}
                     </flux:menu.item>
                 </form>
             </flux:menu>

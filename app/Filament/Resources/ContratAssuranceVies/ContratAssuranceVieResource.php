@@ -37,6 +37,8 @@ class ContratAssuranceVieResource extends Resource
         return ContratAssuranceViesTable::configure($table);
     }
 
+
+
     //  public static function infolist(Infolist $infolist): Infolist
     // {
     //     return $infolist

@@ -127,7 +127,7 @@ class ClientForm
 
                                         DatePicker::make('date_verification_kyc')
                                             ->native(false)
-                                            ->disabled(fn ($get) => ! $get('kyc_verifie'))
+                                            ->disabled(fn($get) => ! $get('kyc_verifie'))
                                             ->prefixIcon('heroicon-o-calendar'),
                                     ])->columns(2),
                             ]),

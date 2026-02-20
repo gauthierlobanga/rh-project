@@ -2,6 +2,14 @@
 
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
+use Illuminate\Support\Facades\Auth;
+use App\Livewire\Forms\EmpruntForm;
+use Flux\Flux;
+
+/*
+use Livewire\Component;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Forms\EmpruntForm;
 use Flux\Flux;
@@ -162,15 +170,8 @@ new class extends Component {
         return $this->form->rules();
     }
 };
-?>
-<?php
 
-use Livewire\Component;
-use Livewire\Attributes\On;
-use Livewire\Attributes\Validate;
-use Illuminate\Support\Facades\Auth;
-use App\Livewire\Forms\EmpruntForm;
-use Flux\Flux;
+*/
 
 new class extends Component {
     public EmpruntForm $form;
