@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProduitAssurance extends Model
 {
-    protected $table = 'produits_assurance';
+    protected $table = 'produit_assurances';
 
     protected $fillable = [
         'code_produit',
@@ -32,7 +32,7 @@ class ProduitAssurance extends Model
         'est_actif',
         'date_activation',
         'date_desactivation',
-        'document_contrat_type'
+        'document_contrat_type',
     ];
 
     protected $casts = [
@@ -48,7 +48,7 @@ class ProduitAssurance extends Model
         'capital_maximum' => 'decimal:2',
         'est_actif' => 'boolean',
         'date_activation' => 'date',
-        'date_desactivation' => 'date'
+        'date_desactivation' => 'date',
     ];
 
     // Relations
@@ -69,6 +69,7 @@ class ProduitAssurance extends Model
         if ($count > 0) {
             return $this->contrats()->avg('prime_annuelle');
         }
+
         return null;
     }
 
@@ -78,18 +79,21 @@ class ProduitAssurance extends Model
         if ($count > 0) {
             return $this->contrats()->avg('capital_assure');
         }
+
         return null;
     }
 
     public function getTauxCommissionAcquisitionAttribute(): float
     {
         $structure = $this->structure_commission ?? [];
+
         return $structure['acquisition'] ?? 0;
     }
 
     public function getTauxCommissionRenouvellementAttribute(): float
     {
         $structure = $this->structure_commission ?? [];
+
         return $structure['renouvellement'] ?? 0;
     }
 
@@ -152,7 +156,7 @@ class ProduitAssurance extends Model
 
         $eligibilite = [
             'eligible' => true,
-            'raisons' => []
+            'raisons' => [],
         ];
 
         if ($age < $this->age_entree_minimum) {
@@ -167,12 +171,12 @@ class ProduitAssurance extends Model
 
         if ($capital < $this->capital_minimum) {
             $eligibilite['eligible'] = false;
-            $eligibilite['raisons'][] = "Capital minimum requis : " . number_format($this->capital_minimum, 0, ',', ' ') . " €";
+            $eligibilite['raisons'][] = 'Capital minimum requis : '.number_format($this->capital_minimum, 0, ',', ' ').' €';
         }
 
         if ($this->capital_maximum && $capital > $this->capital_maximum) {
             $eligibilite['eligible'] = false;
-            $eligibilite['raisons'][] = "Capital maximum autorisé : " . number_format($this->capital_maximum, 0, ',', ' ') . " €";
+            $eligibilite['raisons'][] = 'Capital maximum autorisé : '.number_format($this->capital_maximum, 0, ',', ' ').' €';
         }
 
         return $eligibilite;

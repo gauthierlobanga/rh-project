@@ -55,8 +55,7 @@ class BeneficiaireForm
                                         'inconnu' => 'Inconnu',
                                     ])
                                     ->searchable()
-                                    ->default('actif')
-                                    ->prefixIcon('heroicon-o-status-online'),
+                                    ->default('actif'),
                             ]),
                     ]),
 
@@ -74,6 +73,11 @@ class BeneficiaireForm
                                         if ($state) {
                                             $contrat = ContratAssuranceVie::find($state);
                                             if ($contrat) {
+                                                /**
+                                                 * Calculer le pourcentage d'attribution disponible en fonction des bénéficiaires déjà associés au contrat.
+                                                 * Si le pourcentage saisi dépasse le disponible, le limiter automatiquement pour éviter que le total dépasse 100%.
+                                                 * Cette logique garantit que les utilisateurs ne peuvent pas attribuer plus de 100% du capital assuré à l'ensemble des bénéficiaires d'un même contrat.
+                                                 */
                                                 $beneficiaires = $contrat->beneficiaires()->sum('pourcentage_attribution');
                                                 $disponible = 100 - $beneficiaires;
                                                 if ($get('pourcentage_attribution') > $disponible) {

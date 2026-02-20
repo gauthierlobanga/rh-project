@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ContratAssuranceVies\Schemas;
 
+use App\Models\Agent;
+use App\Models\Client;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
@@ -30,22 +32,22 @@ class ContratAssuranceVieForm
                                         ->maxLength(255)
                                         ->prefixIcon('heroicon-o-hashtag'),
 
+                                    // Sélecteur pour le souscripteur
                                     Select::make('souscripteur_id')
-                                        ->relationship('souscripteur', 'utilisateur.name')
+                                        ->label('Souscripteur')
+                                        ->options(fn () => Client::with('utilisateur')
+                                            ->get()
+                                            ->mapWithKeys(fn ($client) => [
+                                                $client->id => $client->nom_complet.' ('.($client->email ?: 'email manquant').')',
+                                            ])
+                                        )
                                         ->searchable()
                                         ->preload()
                                         ->required()
                                         ->createOptionForm([
-                                            TextInput::make('nom')
-                                                ->required()
-                                                ->maxLength(255),
-                                            TextInput::make('prenom')
-                                                ->required()
-                                                ->maxLength(255),
-                                            TextInput::make('email')
-                                                ->email()
-                                                ->required()
-                                                ->maxLength(255),
+                                            TextInput::make('nom')->required()->maxLength(255),
+                                            TextInput::make('prenom')->required()->maxLength(255),
+                                            TextInput::make('email')->email()->required()->maxLength(255),
                                         ])
                                         ->prefixIcon('heroicon-o-user'),
 
@@ -56,13 +58,20 @@ class ContratAssuranceVieForm
                                         ->required()
                                         ->prefixIcon('heroicon-o-cube'),
 
+                                    // Sélecteur pour l'agent
                                     Select::make('agent_id')
-                                        ->relationship('agent', 'utilisateur.name')
+                                        ->label('Agent')
+                                        ->options(fn () => Agent::with('utilisateur')
+                                            ->get()
+                                            ->mapWithKeys(fn ($agent) => [
+                                                $agent->id => $agent->utilisateur?->name
+                                                    ?? 'Agent #'.$agent->id.' (sans utilisateur)',
+                                            ])
+                                        )
                                         ->searchable()
                                         ->preload()
                                         ->prefixIcon('heroicon-o-user-circle'),
                                 ])->columns(2),
-
                             Section::make('Dates')
                                 ->schema([
                                     DatePicker::make('date_effet')
@@ -169,8 +178,7 @@ class ContratAssuranceVieForm
                                             'resilie' => 'Résilié',
                                             'expire' => 'Expiré',
                                         ])
-                                        ->required()
-                                        ->prefixIcon('heroicon-o-status-online'),
+                                        ->required(),
 
                                     Select::make('mode_paiement')
                                         ->options([

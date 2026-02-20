@@ -2,9 +2,20 @@
 
 namespace App\Filament\Resources\ProduitAssurances\Tables;
 
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ProduitAssurancesTable
@@ -13,18 +24,18 @@ class ProduitAssurancesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('code_produit')
+                TextColumn::make('code_produit')
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->icon('heroicon-o-hashtag'),
 
-                Tables\Columns\TextColumn::make('nom_produit')
+                TextColumn::make('nom_produit')
                     ->searchable()
                     ->sortable()
                     ->icon('heroicon-o-tag'),
 
-                Tables\Columns\TextColumn::make('categorie')
+                TextColumn::make('categorie')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'vie_entier' => 'success',
@@ -37,38 +48,38 @@ class ProduitAssurancesTable
                     })
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('est_actif')
+                IconColumn::make('est_actif')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle'),
 
-                Tables\Columns\TextColumn::make('capital_minimum')
+                TextColumn::make('capital_minimum')
                     ->money('EUR')
                     ->sortable()
                     ->alignment('right'),
 
-                Tables\Columns\TextColumn::make('capital_maximum')
+                TextColumn::make('capital_maximum')
                     ->money('EUR')
                     ->sortable()
                     ->alignment('right'),
 
-                Tables\Columns\TextColumn::make('contrats_count')
+                TextColumn::make('contrats_count')
                     ->counts('contrats')
                     ->label('Contrats')
                     ->icon('heroicon-o-document-text'),
 
-                Tables\Columns\TextColumn::make('prime_moyenne')
+                TextColumn::make('prime_moyenne')
                     ->state(fn ($record) => $record->prime_moyenne)
                     ->money('EUR')
                     ->alignment('right'),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('categorie')
+                SelectFilter::make('categorie')
                     ->options([
                         'vie_entier' => 'Vie entière',
                         'temporaire' => 'Temporaire',
@@ -78,14 +89,14 @@ class ProduitAssurancesTable
                         'capitalisation' => 'Capitalisation',
                     ]),
 
-                Tables\Filters\TernaryFilter::make('est_actif')
+                TernaryFilter::make('est_actif')
                     ->label('Actif'),
 
-                Tables\Filters\Filter::make('date_activation')
-                    ->form([
-                        Forms\Components\DatePicker::make('activated_from')
+                Filter::make('date_activation')
+                    ->schema([
+                        DatePicker::make('activated_from')
                             ->label('Activé après'),
-                        Forms\Components\DatePicker::make('activated_until')
+                        DatePicker::make('activated_until')
                             ->label('Activé avant'),
                     ])
                     ->query(function ($query, array $data) {
@@ -95,22 +106,22 @@ class ProduitAssurancesTable
                     }),
             ])
             ->recordActions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('simuler_prime')
+                ViewAction::make(),
+                EditAction::make(),
+                Action::make('simuler_prime')
                     ->icon('heroicon-o-calculator')
-                    ->form([
-                        Forms\Components\TextInput::make('capital')
+                    ->schema([
+                        TextInput::make('capital')
                             ->numeric()
                             ->required()
                             ->label('Capital assuré')
                             ->prefix('€'),
-                        Forms\Components\TextInput::make('age')
+                        TextInput::make('age')
                             ->numeric()
                             ->required()
                             ->label('Âge du souscripteur')
                             ->suffix('ans'),
-                        Forms\Components\TextInput::make('duree')
+                        TextInput::make('duree')
                             ->numeric()
                             ->required()
                             ->label('Durée du contrat')
@@ -125,22 +136,22 @@ class ProduitAssurancesTable
 
                         Notification::make()
                             ->title('Simulation de prime')
-                            ->body("Prime théorique: " . number_format($prime, 2, ',', ' ') . " €")
+                            ->body('Prime théorique: '.number_format($prime, 2, ',', ' ').' €')
                             ->success()
                             ->send();
                     }),
             ])
             ->toolbarActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('activer')
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    BulkAction::make('activer')
                         ->icon('heroicon-o-check-circle')
                         ->action(function ($records) {
                             foreach ($records as $record) {
                                 $record->update(['est_actif' => true]);
                             }
                         }),
-                    Tables\Actions\BulkAction::make('desactiver')
+                    BulkAction::make('desactiver')
                         ->icon('heroicon-o-x-circle')
                         ->action(function ($records) {
                             foreach ($records as $record) {

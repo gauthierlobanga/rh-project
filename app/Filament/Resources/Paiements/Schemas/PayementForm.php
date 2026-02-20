@@ -90,8 +90,7 @@ class PayementForm
                                                         'en_attente' => 'En attente',
                                                     ])
                                                     ->searchable()
-                                                    ->required()
-                                                    ->prefixIcon('heroicon-o-status-online'),
+                                                    ->required(),
                                             ]),
                                     ]),
                             ]),

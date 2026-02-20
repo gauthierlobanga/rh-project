@@ -3,10 +3,15 @@
 namespace App\Filament\Resources\Sinistres\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 class SinistreForm
@@ -14,7 +19,7 @@ class SinistreForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components->schema([
+            ->components([
                 Tabs::make('Sinistre')
                     ->tabs([
                         Tab::make('Déclaration')
@@ -67,8 +72,7 @@ class SinistreForm
                                                 'indemnise' => 'Indemnisé',
                                                 'cloture' => 'Clôturé',
                                             ])
-                                            ->required()
-                                            ->prefixIcon('heroicon-o-status-online'),
+                                            ->required(),
                                     ])->columns(2),
 
                                 Section::make('Dates')
@@ -185,24 +189,24 @@ class SinistreForm
 
                                 Section::make('Pièces jointes')
                                     ->schema([
-                                        SpatieMediaLibraryFileUpload::make('documents_sinistre')
+                                        FileUpload::make('documents_sinistre')
                                             ->label('Documents du sinistre')
-                                            ->collection('documents_sinistre')
+                                            // ->collection('documents_sinistre')
                                             ->multiple()
                                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                                             ->downloadable()
                                             ->previewable(true),
 
-                                        SpatieMediaLibraryFileUpload::make('rapports_expertise')
+                                        FileUpload::make('rapports_expertise')
                                             ->label('Rapports d\'expertise')
-                                            ->collection('rapports_expertise')
+                                            // ->collection('rapports_expertise')
                                             ->multiple()
                                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                                             ->downloadable(),
 
-                                        SpatieMediaLibraryFileUpload::make('preuves')
+                                        FileUpload::make('preuves')
                                             ->label('Preuves')
-                                            ->collection('preuves')
+                                            // ->collection('preuves')
                                             ->multiple()
                                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'video/mp4'])
                                             ->downloadable(),
@@ -236,172 +240,3 @@ class SinistreForm
             ]);
     }
 }
-
-/*
- <?php
-
-namespace App\Filament\Resources;
-
-use App\Filament\Resources\SinistreResource\Pages;
-use App\Filament\Resources\SinistreResource\RelationManagers;
-use App\Models\Sinistre;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Tabs\Tab;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
-use Illuminate\Support\Facades\Auth;
-
-class SinistreResource extends Resource
-{
-    protected static ?string $model = Sinistre::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';
-    protected static ?string $navigationGroup = 'Sinistres';
-    protected static ?int $navigationSort = 1;
-
-    public static function form(Form $form): Form
-    {
-        return $form
-
-    }
-
-    public static function table(Table $table): Table
-    {
-        return $table
-
-    }
-
-    public static function infolist(Infolist $infolist): Infolist
-    {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Identification du sinistre')
-                    ->schema([
-                        Infolists\Components\Grid::make(4)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('numero_sinistre')
-                                    ->icon('heroicon-o-hashtag'),
-
-                                Infolists\Components\TextEntry::make('type_sinistre')
-                                    ->badge()
-                                    ->icon('heroicon-o-tag'),
-
-                                Infolists\Components\TextEntry::make('statut_sinistre')
-                                    ->badge()
-                                    ->icon('heroicon-o-status-online'),
-
-                                Infolists\Components\IconEntry::make('est_fraude_suspectee')
-                                    ->label('Fraude suspectée')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-shield-exclamation')
-                                    ->falseIcon('heroicon-o-shield-check'),
-                            ]),
-                    ]),
-
-                Infolists\Components\Section::make('Informations du contrat')
-                    ->schema([
-                        Infolists\Components\Grid::make(3)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('contrat.numero_contrat')
-                                    ->icon('heroicon-o-document-text'),
-
-                                Infolists\Components\TextEntry::make('contrat.souscripteur.nom_complet')
-                                    ->icon('heroicon-o-user'),
-
-                                Infolists\Components\TextEntry::make('contrat.capital_assure')
-                                    ->money('EUR')
-                                    ->icon('heroicon-o-currency-euro'),
-                            ]),
-                    ]),
-
-                Infolists\Components\Section::make('Dates importantes')
-                    ->schema([
-                        Infolists\Components\Grid::make(5)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('date_survenance')
-                                    ->date()
-                                    ->icon('heroicon-o-calendar'),
-
-                                Infolists\Components\TextEntry::make('date_declaration')
-                                    ->date()
-                                    ->icon('heroicon-o-calendar'),
-
-                                Infolists\Components\TextEntry::make('date_notification')
-                                    ->date()
-                                    ->icon('heroicon-o-bell'),
-
-                                Infolists\Components\TextEntry::make('date_traitement')
-                                    ->date()
-                                    ->icon('heroicon-o-cog'),
-
-                                Infolists\Components\TextEntry::make('date_indemnisation')
-                                    ->date()
-                                    ->icon('heroicon-o-banknotes'),
-                            ]),
-                    ]),
-
-                Infolists\Components\Section::make('Montants')
-                    ->schema([
-                        Infolists\Components\Grid::make(3)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('montant_reclame')
-                                    ->money('EUR')
-                                    ->icon('heroicon-o-currency-euro'),
-
-                                Infolists\Components\TextEntry::make('montant_accordee')
-                                    ->money('EUR')
-                                    ->icon('heroicon-o-check-circle'),
-
-                                Infolists\Components\TextEntry::make('montant_indemnise')
-                                    ->money('EUR')
-                                    ->icon('heroicon-o-banknotes'),
-                            ]),
-                    ]),
-
-                Infolists\Components\Section::make('Expert et documents')
-                    ->schema([
-                        Infolists\Components\Grid::make(2)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('expert.nom_complet')
-                                    ->icon('heroicon-o-user-circle'),
-
-                                Infolists\Components\TextEntry::make('numero_virement')
-                                    ->icon('heroicon-o-credit-card'),
-                            ]),
-
-                        Infolists\Components\TextEntry::make('documents_recus_count')
-                            ->label('Documents reçus')
-                            ->state(fn ($record) => count($record->documents_recus ?? []))
-                            ->suffix(' / ' . count($record->documents_requis ?? []))
-                            ->icon('heroicon-o-document'),
-                    ]),
-            ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\PaiementRelationManager::class,
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListSinistres::route('/'),
-            'create' => Pages\CreateSinistre::route('/create'),
-            'edit' => Pages\EditSinistre::route('/{record}/edit'),
-            'view' => Pages\ViewSinistre::route('/{record}'),
-        ];
-    }
-
-
-}
- */

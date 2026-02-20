@@ -194,4 +194,38 @@ class Client extends Model implements HasMedia
 
         return min(max($score, 0), 100);
     }
+
+    /**
+     * Le "booted" méthode du modèle.
+     */
+    protected static function booted()
+    {
+        static::creating(function ($client) {
+            // Générer la référence client si elle n'est pas déjà fournie
+            if (empty($client->reference_client)) {
+                $client->reference_client = static::generateReference();
+            }
+        });
+    }
+
+    /**
+     * Génère une référence client unique.
+     * Format : CLI + année (4 chiffres) + mois (2 chiffres) + numéro séquentiel sur 4 chiffres.
+     * Exemple : CLI2025030012 pour mars 2025, 12ème client du mois.
+     */
+    public static function generateReference(): string
+    {
+        $prefix = 'CLI';
+        $year = date('Y');
+        $month = date('m');
+
+        // Compter les clients créés ce mois-ci
+        $count = static::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->count();
+
+        $number = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+        return $prefix.$year.$month.$number;
+    }
 }

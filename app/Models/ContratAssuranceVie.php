@@ -83,6 +83,10 @@ class ContratAssuranceVie extends Model implements HasMedia
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
+    /**
+     * Un contrat peut avoir plusieurs bénéficiaires, cotisations, réserves, sinistres, commissions, paiements et historiques associés.
+     * Chaque relation est définie avec une clé étrangère 'contrat_id' dans les tables correspondantes.
+     */
     public function beneficiaires(): HasMany
     {
         return $this->hasMany(Beneficiaire::class, 'contrat_id');

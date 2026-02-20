@@ -49,14 +49,20 @@ class ClientForm
 
                                         TextInput::make('reference_client')
                                             ->unique(ignoreRecord: true)
+                                            ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord)
                                             ->maxLength(255)
-                                            ->prefixIcon('heroicon-o-hashtag'),
+                                            ->prefixIcon('heroicon-o-hashtag')
+                                            ->disabled(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                                            ->placeholder('Généré automatiquement à la création du client')
+                                            ->disabled(),
 
                                         Select::make('type_client')
                                             ->options([
                                                 'particulier' => 'Particulier',
                                                 'professionnel' => 'Professionnel',
                                             ])
+                                            ->preload()
+                                            ->searchable()
                                             ->required()
                                             ->prefixIcon('heroicon-o-tag'),
 
@@ -66,6 +72,8 @@ class ClientForm
                                                 'Mme' => 'Madame',
                                                 'Mlle' => 'Mademoiselle',
                                             ])
+                                            ->preload()
+                                            ->searchable()
                                             ->prefixIcon('heroicon-o-user'),
 
                                         TextInput::make('nom')
@@ -101,6 +109,8 @@ class ClientForm
                                                 'concubinage' => 'Concubinage',
                                                 'pacs' => 'PACS',
                                             ])
+                                            ->preload()
+                                            ->searchable()
                                             ->prefixIcon('heroicon-o-heart'),
 
                                         TextInput::make('nombre_enfants')
@@ -127,7 +137,7 @@ class ClientForm
 
                                         DatePicker::make('date_verification_kyc')
                                             ->native(false)
-                                            ->disabled(fn($get) => ! $get('kyc_verifie'))
+                                            ->disabled(fn ($get) => ! $get('kyc_verifie'))
                                             ->prefixIcon('heroicon-o-calendar'),
                                     ])->columns(2),
                             ]),
@@ -157,24 +167,23 @@ class ClientForm
 
                                 Section::make('Adresse')
                                     ->schema([
-                                        Select::make('adresse.rue')
+                                        TextInput::make('adresse.rue')
                                             ->label('Rue')
                                             ->maxLength(255),
 
-                                        Select::make('adresse.complement')
+                                        TextInput::make('adresse.complement')
                                             ->label('Complément')
-
                                             ->maxLength(255),
 
-                                        Select::make('adresse.code_postal')
+                                        TextInput::make('adresse.code_postal')
                                             ->label('Code postal')
                                             ->maxLength(10),
 
-                                        Select::make('adresse.ville')
+                                        TextInput::make('adresse.ville')
                                             ->label('Ville')
                                             ->maxLength(255),
 
-                                        Select::make('adresse.pays')
+                                        TextInput::make('adresse.pays')
                                             ->label('Pays')
                                             ->maxLength(255)
                                             ->default('France'),
@@ -220,7 +229,13 @@ class ClientForm
                                 Section::make('Gestion')
                                     ->schema([
                                         Select::make('agent_id')
-                                            ->relationship('agent', 'utilisateur.name')
+                                            ->label('Agent')
+                                            ->options(fn () => \App\Models\Agent::with('utilisateur')
+                                                ->get()
+                                                ->mapWithKeys(fn ($agent) => [
+                                                    $agent->id => $agent->utilisateur?->name ?? 'Agent #'.$agent->id,
+                                                ])
+                                            )
                                             ->searchable()
                                             ->preload()
                                             ->prefixIcon('heroicon-o-user-circle'),
@@ -233,12 +248,15 @@ class ClientForm
                                                 'internet' => 'Internet',
                                                 'autre' => 'Autre',
                                             ])
+                                            ->preload()
+                                            ->searchable()
                                             ->prefixIcon('heroicon-o-magnifying-glass'),
 
                                         Textarea::make('notes')
                                             ->rows(3)
                                             ->columnSpanFull(),
                                     ])->columns(2),
+
                             ]),
 
                         Tab::make('Documents')

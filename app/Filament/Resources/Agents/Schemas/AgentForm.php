@@ -60,8 +60,7 @@ class AgentForm
                                                 'en_conge' => 'En congé',
                                                 'formation' => 'En formation',
                                             ])
-                                            ->required()
-                                            ->prefixIcon('heroicon-o-status-online'),
+                                            ->required(),
                                     ])->columns(3),
 
                                 Section::make('Agrément')
@@ -128,29 +127,29 @@ class AgentForm
                                     ->schema([
                                         TextEntry::make('nombre_contrats')
                                             ->label('Nombre de contrats')
-                                            ->content(fn($record) => $record?->nombre_contrats ?? '0'),
+                                            ->state(fn ($record) => $record?->nombre_contrats ?? '0'),
 
                                         TextEntry::make('valeur_portefeuille')
                                             ->label('Valeur du portefeuille')
-                                            ->content(
-                                                fn($record) => isset($record) ?
-                                                    number_format($record->valeur_portefeuille, 2, ',', ' ') . ' €' :
+                                            ->state(
+                                                fn ($record) => isset($record) ?
+                                                    number_format($record->valeur_portefeuille, 2, ',', ' ').' €' :
                                                     '0,00 €'
                                             ),
 
                                         TextEntry::make('total_commissions')
                                             ->label('Total des commissions')
-                                            ->content(
-                                                fn($record) => isset($record) ?
-                                                    number_format($record->total_commissions, 2, ',', ' ') . ' €' :
+                                            ->state(
+                                                fn ($record) => isset($record) ?
+                                                    number_format($record->total_commissions, 2, ',', ' ').' €' :
                                                     '0,00 €'
                                             ),
 
                                         TextEntry::make('taux_conversion')
                                             ->label('Taux de conversion')
-                                            ->content(
-                                                fn($record) => isset($record) && $record->taux_conversion ?
-                                                    number_format($record->taux_conversion, 1, ',', ' ') . ' %' :
+                                            ->state(
+                                                fn ($record) => isset($record) && $record->taux_conversion ?
+                                                    number_format($record->taux_conversion, 1, ',', ' ').' %' :
                                                     '0 %'
                                             ),
                                     ])->columns(2),

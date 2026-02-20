@@ -2,11 +2,25 @@
 
 namespace App\Filament\Resources\Sinistres\Tables;
 
+use App\Filament\Resources\Clients\ClientResource;
+use App\Filament\Resources\ContratAssuranceVies\ContratAssuranceVieResource;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class SinistresTable
@@ -137,7 +151,7 @@ class SinistresTable
                 Filter::make('en_cours')
                     ->label('En cours de traitement')
                     ->query(fn ($query) => $query->whereIn('statut_sinistre', [
-                        'declare', 'en_cours_examen', 'documents_manquants', 'expertise_en_cours'
+                        'declare', 'en_cours_examen', 'documents_manquants', 'expertise_en_cours',
                     ])),
             ])
             ->recordActions([
@@ -146,7 +160,7 @@ class SinistresTable
                 ActionGroup::make([
                     Action::make('assigner_expert')
                         ->icon('heroicon-o-user-circle')
-                        ->form([
+                        ->schema([
                             Select::make('expert_id')
                                 ->relationship('expert', 'nom_complet')
                                 ->searchable()
@@ -161,7 +175,7 @@ class SinistresTable
 
                     Action::make('demander_documents')
                         ->icon('heroicon-o-document-plus')
-                        ->form([
+                        ->schema([
                             KeyValue::make('documents')
                                 ->keyLabel('Document')
                                 ->valueLabel('Date limite')
@@ -178,7 +192,7 @@ class SinistresTable
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->form([
+                        ->schema([
                             TextInput::make('montant_accorde')
                                 ->numeric()
                                 ->required()
@@ -202,7 +216,7 @@ class SinistresTable
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->form([
+                        ->schema([
                             Textarea::make('motif')
                                 ->required()
                                 ->label('Motif du refus'),
@@ -216,7 +230,7 @@ class SinistresTable
                         ->icon('heroicon-o-banknotes')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->form([
+                        ->schema([
                             TextInput::make('numero_virement')
                                 ->required()
                                 ->label('Numéro de virement')
@@ -239,7 +253,7 @@ class SinistresTable
                     DeleteBulkAction::make(),
                     BulkAction::make('assigner_expert')
                         ->icon('heroicon-o-user-circle')
-                        ->form([
+                        ->schema([
                             Select::make('expert_id')
                                 ->relationship('expert', 'nom_complet')
                                 ->searchable()
@@ -249,7 +263,7 @@ class SinistresTable
                         ->action(function ($records, array $data) {
                             $expert = \App\Models\Agent::find($data['expert_id']);
                             foreach ($records as $record) {
-                                if (!$record->expert_id) {
+                                if (! $record->expert_id) {
                                     $record->assignerExpert($expert);
                                 }
                             }

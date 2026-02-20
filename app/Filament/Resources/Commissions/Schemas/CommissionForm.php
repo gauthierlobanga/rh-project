@@ -68,8 +68,7 @@ class CommissionForm
                                         'payee' => 'Payée',
                                         'annulee' => 'Annulée',
                                     ])
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-status-online'),
+                                    ->required(),
 
                                 TextInput::make('annee_comptable')
                                     ->numeric()
